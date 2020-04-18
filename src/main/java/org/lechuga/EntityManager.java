@@ -18,13 +18,11 @@ public class EntityManager {
 
 	final Map<Class<?>, EntityConfig<?>> entityConfigs;
 	final DataAccesFacade facade;
-	final EntityManagerOperations ops;
 
 	public EntityManager(Map<Class<?>, EntityConfig<?>> entityConfigs, DataAccesFacade facade) {
 		super();
 		this.entityConfigs = entityConfigs;
 		this.facade = facade;
-		this.ops = new EntityManagerOperations();
 	}
 
 	public DataAccesFacade getFacade() {
@@ -50,8 +48,8 @@ public class EntityManager {
 
 	public <E> List<E> loadAll(Class<E> entityClass, List<Order> orders) {
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
-		QueryObject q = ops.queryForSelectAll(entityConfig);
-		q.append(ops.sortBy(entityConfig, orders));
+		QueryObject q = entityConfig.getEntityManagerOperations().selectAll();
+		q.append(entityConfig.getEntityManagerOperations().sortBy(orders));
 		List<E> r = facade.load(q, entityConfig);
 		r.forEach(e -> entityConfig.getListeners().forEach(l -> l.afterLoad(this, e)));
 		return r;
@@ -59,7 +57,7 @@ public class EntityManager {
 
 	public <E, ID> E loadById(Class<E> entityClass, ID id) throws TooManyResultsException, EmptyResultException {
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
-		IQueryObject q = ops.queryForSelectById(entityConfig, id);
+		IQueryObject q = entityConfig.getEntityManagerOperations().selectById(id);
 		E r = facade.loadUnique(q, entityConfig);
 		entityConfig.getListeners().forEach(l -> l.afterLoad(this, r));
 		return r;
@@ -69,7 +67,7 @@ public class EntityManager {
 	public <E> void refresh(E entity) throws TooManyResultsException, EmptyResultException {
 		Class<E> entityClass = (Class<E>) entity.getClass();
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
-		IQueryObject q = ops.refresh(entityConfig, entity);
+		IQueryObject q = entityConfig.getEntityManagerOperations().refresh(entity);
 		E e = facade.loadUnique(q, entityConfig);
 
 		for (PropertyConfig p : entityConfig.getAllPropsMap().values()) {
@@ -89,7 +87,7 @@ public class EntityManager {
 		entityConfig.getListeners().forEach(l -> l.beforeUpdate(this, entity));
 		entityConfig.getListeners().forEach(l -> l.beforeStore(this, entity));
 
-		IQueryObject q = ops.queryForUpdate(entityConfig, entity);
+		IQueryObject q = entityConfig.getEntityManagerOperations().update(entity);
 		int affectedRows = facade.update(q);
 		if (affectedRows != 1) {
 			throw new UnexpectedResultException(
@@ -122,7 +120,7 @@ public class EntityManager {
 			}
 		}
 
-		IQueryObject q = ops.queryForInsert(entityConfig, entity);
+		IQueryObject q = entityConfig.getEntityManagerOperations().insert(entity);
 		facade.update(q);
 
 		for (PropertyConfig autoGenProp : entityConfig.getAutogenProps()) {
@@ -247,7 +245,7 @@ public class EntityManager {
 
 		entityConfig.getListeners().forEach(l -> l.beforeDelete(this, entity));
 
-		IQueryObject q = ops.queryForDelete(entityConfig, entity);
+		IQueryObject q = entityConfig.getEntityManagerOperations().delete(entity);
 		int affectedRows = facade.update(q);
 		if (affectedRows != 1) {
 			throw new UnexpectedResultException(
@@ -268,7 +266,7 @@ public class EntityManager {
 			entityConfig.getListeners().forEach(l -> l.beforeDelete(this, e));
 		}
 
-		IQueryObject q = ops.queryForDeleteById(entityConfig, id);
+		IQueryObject q = entityConfig.getEntityManagerOperations().deleteById(id);
 		int affectedRows = facade.update(q);
 		if (affectedRows != 1) {
 			throw new UnexpectedResultException(
@@ -282,7 +280,7 @@ public class EntityManager {
 
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		IQueryObject q = ops.existsById(entityConfig, id);
+		IQueryObject q = entityConfig.getEntityManagerOperations().existsById(id);
 		long rows = facade.loadUnique(q, ScalarMappers.LONG);
 		return rows > 0L;
 	}
@@ -293,7 +291,7 @@ public class EntityManager {
 		Class<E> entityClass = (Class<E>) entity.getClass();
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		IQueryObject q = ops.exists(entityConfig, entity);
+		IQueryObject q = entityConfig.getEntityManagerOperations().exists(entity);
 		long rows = facade.loadUnique(q, ScalarMappers.LONG);
 		return rows > 0L;
 	}
@@ -306,7 +304,7 @@ public class EntityManager {
 		Class<E> entityClass = (Class<E>) example.getClass();
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		QueryObject q = ops.queryForSelectAll(entityConfig);
+		QueryObject q = entityConfig.getEntityManagerOperations().selectAll();
 		q.append(" where 1=1");
 		for (PropertyConfig p : entityConfig.getAllPropsMap().values()) {
 			Object v = p.getValue(example);
@@ -322,17 +320,13 @@ public class EntityManager {
 		return r;
 	}
 
-	public <E> List<E> loadByExample(E example) {
-		return loadByExample(example, null);
-	}
-
 	@SuppressWarnings("unchecked")
 	public <E> List<E> loadByExample(E example, List<Order> orders) {
 
 		Class<E> entityClass = (Class<E>) example.getClass();
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		QueryObject q = ops.queryForSelectAll(entityConfig);
+		QueryObject q = entityConfig.getEntityManagerOperations().selectAll();
 
 		/*
 		 * where specs
@@ -348,7 +342,7 @@ public class EntityManager {
 			}
 		}
 
-		q.append(ops.sortBy(entityConfig, orders));
+		q.append(entityConfig.getEntityManagerOperations().sortBy(orders));
 
 		List<E> r = getFacade().load(q, entityConfig);
 		r.forEach(e -> entityConfig.getListeners().forEach(l -> l.afterLoad(this, e)));

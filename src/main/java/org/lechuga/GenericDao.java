@@ -98,10 +98,6 @@ public class GenericDao<E, ID> {
 		return em.loadUniqueByExample(example);
 	}
 
-	public List<E> loadByExample(E example) {
-		return em.loadByExample(example);
-	}
-
 	public List<E> loadByExample(E example, List<Order> orders) {
 		return em.loadByExample(example, orders);
 	}

@@ -13,14 +13,14 @@ public class EntityConfig<E> implements Mapable<E> {
 	private final Class<E> entityClass;
 	private final String tableName;
 
-	private final EntityManagerOperations entityManagerOperations;
-
 	private final Map<String, PropertyConfig> allPropsMap;
 	private final List<PropertyConfig> idProps;
 	private final List<PropertyConfig> regularProps;
 	private final List<PropertyConfig> autogenProps;
 
 	private final List<EntityListener<E>> entityListeners;
+
+	private final EntityManagerOperations entityManagerOperations;
 
 	public EntityConfig(Class<E> entityClass, String tableName, Map<String, PropertyConfig> allPropsMap,
 			List<PropertyConfig> idProps, List<PropertyConfig> regularProps, List<PropertyConfig> autogenProps,
@@ -32,8 +32,8 @@ public class EntityConfig<E> implements Mapable<E> {
 		this.idProps = idProps;
 		this.regularProps = regularProps;
 		this.autogenProps = autogenProps;
-		this.entityManagerOperations = new EntityManagerOperations();
 		this.entityListeners = entityListeners;
+		this.entityManagerOperations = new EntityManagerOperations(this);
 	}
 
 	@Override

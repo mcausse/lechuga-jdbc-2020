@@ -1,7 +1,10 @@
 package org.lechuga;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.hsqldb.jdbc.JDBCDataSource;
@@ -104,6 +107,55 @@ public class Col405Test {
 			facade.rollback();
 			throw e;
 		}
+	}
+
+	@Test
+	public void testGenericDao() throws Exception {
+
+		EntityManager em = new EntityManagerFactory().buildEntityManager(facade, Col405.class);
+		GenericDao<Col405, String> dao = new GenericDao<>(em, Col405.class);
+
+		facade.begin();
+		try {
+
+			Col405 kv1 = new Col405("1", "one", true);
+			Col405 kv2 = new Col405("2", "two", false);
+			Col405 kv3 = new Col405("3", "three", true);
+
+			dao.insertAll(Arrays.asList(kv1, kv2, kv3));
+
+			kv1.value = "u";
+			kv2.value = "dos";
+			kv3.value = "tres";
+
+			dao.updateAll(Arrays.asList(kv1, kv2, kv3));
+
+			{
+				Col405 probe = new Col405();
+				probe.enabled = true;
+				List<Col405> all = dao.loadByExample(probe, Order.by(Order.asc("key")));
+				assertEquals("[[1=>u (true)], [3=>tres (true)]]", all.toString());
+			}
+			{
+				Col405 probe = new Col405();
+				probe.enabled = false;
+				Col405 unique = dao.loadUniqueByExample(probe);
+				assertEquals("[2=>dos (false)]", unique.toString());
+			}
+
+			assertTrue(dao.exists(kv1));
+			assertTrue(dao.existsById(kv2.key));
+			dao.delete(kv1);
+			dao.deleteById(kv2.key);
+			assertFalse(dao.exists(kv1));
+			assertFalse(dao.existsById(kv2.key));
+
+			facade.commit();
+		} catch (Exception e) {
+			facade.rollback();
+			throw e;
+		}
+
 	}
 
 }
