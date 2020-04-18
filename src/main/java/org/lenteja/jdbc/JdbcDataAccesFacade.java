@@ -27,7 +27,7 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
 		return ds;
 	}
 
-	static class Tx {
+	protected static class Tx {
 
 		final Connection c;
 		final Throwable opened;
@@ -55,10 +55,9 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
 		public Throwable getOpened() {
 			return opened;
 		}
-
 	}
 
-	static final ThreadLocal<Tx> threadton = new ThreadLocal<Tx>() {
+	protected final ThreadLocal<Tx> threadton = new ThreadLocal<Tx>() {
 
 		@Override
 		protected Tx initialValue() {
@@ -150,7 +149,7 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
 		}
 	}
 
-	PreparedStatement prepareStatement(Connection c, IQueryObject q) throws SQLException {
+	protected PreparedStatement prepareStatement(Connection c, IQueryObject q) throws SQLException {
 		final PreparedStatement ps = c.prepareStatement(q.getQuery());
 		try {
 			Object[] args = q.getArgs();
@@ -164,7 +163,7 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
 		}
 	}
 
-	void closeResources(ResultSet rs, PreparedStatement ps) {
+	protected void closeResources(ResultSet rs, PreparedStatement ps) {
 		if (rs != null) {
 			try {
 				rs.close();
@@ -296,5 +295,4 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
 			closeResources(rs, ps);
 		}
 	}
-
 }

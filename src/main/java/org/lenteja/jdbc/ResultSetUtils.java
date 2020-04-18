@@ -62,7 +62,7 @@ public class ResultSetUtils {
 	public static Boolean getBoolean(final ResultSet rs) throws SQLException {
 		boolean v = rs.getBoolean(1);
 //		A method that returns either Boolean.TRUE, Boolean.FALSE or null is an accident waiting to happen.
-//		This method can be invoked as though it returned a value of type boolean, andthe compiler will insert 
+//		This method can be invoked as though it returned a value of type boolean, andthe compiler will insert
 //		automatic unboxing of the Boolean value. If a null value is returned,this will result in a NullPointerException.
 //
 //		if (rs.wasNull()) {
@@ -130,7 +130,7 @@ public class ResultSetUtils {
 	public static Boolean getBoolean(final ResultSet rs, final String columnLabel) throws SQLException {
 		boolean v = rs.getBoolean(columnLabel);
 //		A method that returns either Boolean.TRUE, Boolean.FALSE or null is an accident waiting to happen.
-//		This method can be invoked as though it returned a value of type boolean, andthe compiler will insert 
+//		This method can be invoked as though it returned a value of type boolean, andthe compiler will insert
 //		automatic unboxing of the Boolean value. If a null value is returned,this will result in a NullPointerException.
 //
 //		if (rs.wasNull()) {

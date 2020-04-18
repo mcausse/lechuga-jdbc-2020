@@ -54,6 +54,7 @@ public class PropertyConfig {
 	public Class<?> getPropertyType() {
 		return propertyChain.getPropertyType();
 	}
+
 	////
 
 	public void setValue(Object targetBean, Object value) {

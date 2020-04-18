@@ -40,6 +40,10 @@ public class EntityManager {
 		return (EntityConfig<E>) entityConfigs.get(entityClass);
 	}
 
+	public QueryBuilder buildQuery() {
+		return new QueryBuilder(this);
+	}
+
 	public <E> List<E> loadAll(Class<E> entityClass) {
 		return loadAll(entityClass, null);
 	}
@@ -48,17 +52,17 @@ public class EntityManager {
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 		QueryObject q = ops.queryForSelectAll(entityConfig);
 		q.append(ops.sortBy(entityConfig, orders));
-		return facade.load(q, entityConfig);
-	}
-
-	public QueryBuilder buildQuery() {
-		return new QueryBuilder(this);
+		List<E> r = facade.load(q, entityConfig);
+		r.forEach(e -> entityConfig.getListeners().forEach(l -> l.afterLoad(this, e)));
+		return r;
 	}
 
 	public <E, ID> E loadById(Class<E> entityClass, ID id) throws TooManyResultsException, EmptyResultException {
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 		IQueryObject q = ops.queryForSelectById(entityConfig, id);
-		return facade.loadUnique(q, entityConfig);
+		E r = facade.loadUnique(q, entityConfig);
+		entityConfig.getListeners().forEach(l -> l.afterLoad(this, r));
+		return r;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -72,6 +76,7 @@ public class EntityManager {
 			Object value = p.getValue(e);
 			p.setValue(entity, value);
 		}
+		entityConfig.getListeners().forEach(l -> l.afterLoad(this, e));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -81,9 +86,8 @@ public class EntityManager {
 
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.beforeUpdate(this, entity));
-		}
+		entityConfig.getListeners().forEach(l -> l.beforeUpdate(this, entity));
+		entityConfig.getListeners().forEach(l -> l.beforeStore(this, entity));
 
 		IQueryObject q = ops.queryForUpdate(entityConfig, entity);
 		int affectedRows = facade.update(q);
@@ -92,9 +96,8 @@ public class EntityManager {
 					"expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
 		}
 
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.afterUpdate(this, entity));
-		}
+		entityConfig.getListeners().forEach(l -> l.afterUpdate(this, entity));
+		entityConfig.getListeners().forEach(l -> l.afterStore(this, entity));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -103,9 +106,8 @@ public class EntityManager {
 		Class<E> entityClass = (Class<E>) entity.getClass();
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.beforeInsert(this, entity));
-		}
+		entityConfig.getListeners().forEach(l -> l.beforeInsert(this, entity));
+		entityConfig.getListeners().forEach(l -> l.beforeStore(this, entity));
 
 		for (PropertyConfig autoGenProp : entityConfig.getAutogenProps()) {
 			Generator ag = autoGenProp.getGenerator();
@@ -136,10 +138,8 @@ public class EntityManager {
 			}
 		}
 
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.afterInsert(this, entity));
-		}
-
+		entityConfig.getListeners().forEach(l -> l.afterInsert(this, entity));
+		entityConfig.getListeners().forEach(l -> l.afterStore(this, entity));
 	}
 
 	/**
@@ -169,10 +169,6 @@ public class EntityManager {
 		Class<E> entityClass = (Class<E>) entity.getClass();
 
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
-
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.beforeStore(this, entity));
-		}
 
 		/**
 		 * si una propietat PK és primitiva, el seu valor mai serà null (p.ex. serà 0) i
@@ -241,11 +237,6 @@ public class EntityManager {
 			}
 
 		}
-
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.afterStore(this, entity));
-		}
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -254,9 +245,7 @@ public class EntityManager {
 		Class<E> entityClass = (Class<E>) entity.getClass();
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
 
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.beforeDelete(this, entity));
-		}
+		entityConfig.getListeners().forEach(l -> l.beforeDelete(this, entity));
 
 		IQueryObject q = ops.queryForDelete(entityConfig, entity);
 		int affectedRows = facade.update(q);
@@ -265,19 +254,28 @@ public class EntityManager {
 					"expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
 		}
 
-		if (entityConfig.getListeners() != null) {
-			entityConfig.getListeners().forEach(l -> l.afterDelete(this, entity));
-		}
+		entityConfig.getListeners().forEach(l -> l.afterDelete(this, entity));
 	}
 
 	public <E, ID> void deleteById(Class<E> entityClass, ID id) throws TooManyResultsException, EmptyResultException {
 		EntityConfig<E> entityConfig = getEntityConfigFor(entityClass);
+
+		final E e;
+		if (entityConfig.getListeners().isEmpty()) {
+			e = null;
+		} else {
+			e = loadById(entityClass, id);
+			entityConfig.getListeners().forEach(l -> l.beforeDelete(this, e));
+		}
+
 		IQueryObject q = ops.queryForDeleteById(entityConfig, id);
 		int affectedRows = facade.update(q);
 		if (affectedRows != 1) {
 			throw new UnexpectedResultException(
 					"expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
 		}
+
+		entityConfig.getListeners().forEach(l -> l.afterDelete(this, e));
 	}
 
 	public <E, ID> boolean existsById(Class<E> entityClass, ID id) {
@@ -319,7 +317,9 @@ public class EntityManager {
 				q.addArg(p.getJdbcValue(example));
 			}
 		}
-		return getFacade().loadUnique(q, entityConfig);
+		E r = getFacade().loadUnique(q, entityConfig);
+		entityConfig.getListeners().forEach(l -> l.afterLoad(this, r));
+		return r;
 	}
 
 	public <E> List<E> loadByExample(E example) {
@@ -350,7 +350,9 @@ public class EntityManager {
 
 		q.append(ops.sortBy(entityConfig, orders));
 
-		return getFacade().load(q, entityConfig);
+		List<E> r = getFacade().load(q, entityConfig);
+		r.forEach(e -> entityConfig.getListeners().forEach(l -> l.afterLoad(this, e)));
+		return r;
 	}
 
 	// TODO que fer amb aixo?

@@ -22,7 +22,7 @@ public class QueryBuilder {
 	public QueryBuilder(EntityManager em, QueryFormatter queryFormatter) {
 		super();
 		this.em = em;
-		this.queryFormatter = queryFormatter; 
+		this.queryFormatter = queryFormatter;
 		this.aliases = new LinkedHashMap<>();
 		this.qo = new QueryObject();
 	}
