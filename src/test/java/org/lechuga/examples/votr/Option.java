@@ -1,4 +1,4 @@
-package org.lechuga.votr;
+package org.lechuga.examples.votr;
 
 import org.lechuga.anno.Column;
 import org.lechuga.anno.Id;

@@ -1,4 +1,4 @@
-package org.lechuga.votr;
+package org.lechuga.examples.votr;
 
 import java.util.Date;
 

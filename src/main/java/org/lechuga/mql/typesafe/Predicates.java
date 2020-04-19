@@ -148,7 +148,7 @@ public class Predicates<E> implements IQueryObject {
 
 		QueryObject q = new QueryObject();
 		aliase(q, prop);
-		q.append(" like ?");
+		q.append(" LIKE ?");
 		q.addArg(elike.process(value));
 		return q;
 	}
@@ -157,9 +157,9 @@ public class Predicates<E> implements IQueryObject {
 		PropertyConfig prop = getPropertyConfigOf(field);
 
 		QueryObject q = new QueryObject();
-		q.append("upper(");
+		q.append("UPPER(");
 		aliase(q, prop);
-		q.append(") like upper(?)");
+		q.append(") LIKE UPPER(?)");
 		q.addArg(elike.process(value));
 		return q;
 	}
@@ -173,7 +173,7 @@ public class Predicates<E> implements IQueryObject {
 
 		QueryObject q = new QueryObject();
 		aliase(q, prop);
-		q.append(" between ? and ?");
+		q.append(" BETWEEN ? AND ?");
 		q.addArg(convertedValue1);
 		q.addArg(convertedValue2);
 		return q;
@@ -187,7 +187,7 @@ public class Predicates<E> implements IQueryObject {
 
 		QueryObject q = new QueryObject();
 		aliase(q, prop);
-		q.append(" in (");
+		q.append(" IN (");
 		int c = 0;
 		for (T value : values) {
 			Object convertedValue = prop.getColumnHandler().getJdbcValue(value);
@@ -213,7 +213,7 @@ public class Predicates<E> implements IQueryObject {
 
 		QueryObject q = new QueryObject();
 		aliase(q, prop);
-		q.append(" not in (");
+		q.append(" NOT IN (");
 		int c = 0;
 		for (T value : values) {
 			Object convertedValue = prop.getColumnHandler().getJdbcValue(value);

@@ -1,4 +1,4 @@
-package org.lechuga;
+package org.lechuga.examples;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -10,6 +10,10 @@ import java.util.List;
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
 import org.junit.Test;
+import org.lechuga.EntityManager;
+import org.lechuga.EntityManagerFactory;
+import org.lechuga.GenericDao;
+import org.lechuga.Order;
 import org.lechuga.anno.Column;
 import org.lechuga.anno.Id;
 import org.lechuga.anno.Table;

@@ -1,4 +1,4 @@
-package org.lechuga.pizza;
+package org.lechuga.examples;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

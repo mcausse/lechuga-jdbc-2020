@@ -1,4 +1,4 @@
-package org.lechuga.movies;
+package org.lechuga.examples;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -97,8 +97,8 @@ public class TestMovies {
 		EntityManager em = new EntityManagerFactory().buildEntityManager(facade, Genre.class, GenreMovie.class,
 				Movie.class, GenresCountDto.class);
 
-		MovieService service = TransactionalServiceProxyfier.proxyfy(facade, new MovieServiceImpl(em),
-				MovieService.class);
+		MovieService service = TransactionalServiceProxyfier.proxyfy(facade, MovieService.class,
+				new MovieServiceImpl(em));
 
 		for (GenresCountDto g : service.getGenres()) {
 			System.out.println(g);
@@ -128,7 +128,6 @@ public class TestMovies {
 		@TransactionalMethod(readOnly = true)
 		public PageResult<Movie> findMovies(Pager<Movie> pager, String titlePartial, Integer fromYear, Integer toYear,
 				Long genreId);
-
 	}
 
 	public static class GenresCountDto {

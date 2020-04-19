@@ -1,4 +1,4 @@
-package org.lechuga.votr;
+package org.lechuga.examples.votr;
 
 import java.util.Date;
 import java.util.List;
@@ -47,8 +47,8 @@ public class VotrTest {
 		EntityManager em = new EntityManagerFactory().buildEntityManager(facade, Votr.class, User.class, Option.class,
 				Comment.class);
 
-		MovieService service = TransactionalServiceProxyfier.proxyfy(facade, new MovieServiceImpl(em),
-				MovieService.class);
+		MovieService service = TransactionalServiceProxyfier.proxyfy(facade, MovieService.class,
+				new MovieServiceImpl(em));
 
 		String hashVotr;
 		{

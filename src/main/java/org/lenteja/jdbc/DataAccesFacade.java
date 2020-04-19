@@ -32,5 +32,4 @@ public interface DataAccesFacade {
 	boolean isValidTransaction();
 
 	Connection getCurrentConnection();
-
 }

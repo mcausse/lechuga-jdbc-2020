@@ -5,10 +5,10 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.lechuga.EntityManager;
 import org.lechuga.EntityManagerFactory;
+import org.lechuga.examples.ExpEntityManagerTest.EFase;
+import org.lechuga.examples.ExpEntityManagerTest.Exp;
+import org.lechuga.examples.PizzaEntityManagerTest.Pizza;
 import org.lechuga.mql.QueryBuilder;
-import org.lechuga.pizza.ExpEntityManagerTest.EFase;
-import org.lechuga.pizza.ExpEntityManagerTest.Exp;
-import org.lechuga.pizza.PizzaEntityManagerTest.Pizza;
 
 public class TypeSafeMQLTest {
 
@@ -46,7 +46,7 @@ public class TypeSafeMQLTest {
 			qb.append("{}", Restrictions.and(pexp.between(Exp_.numExp, 100L, 200L),
 					pexp.in(Exp_.fase, EFase.OK, EFase.FAILED)));
 			assertEquals(
-					"e.num_exp between ? and ? and e.fase in (?,?) -- [100(Long), 200(Long), OK(String), FAILED(String)]",
+					"e.num_exp BETWEEN ? AND ? AND e.fase IN (?,?) -- [100(Long), 200(Long), OK(String), FAILED(String)]",
 					qb.getQueryObject().toString());
 		}
 
@@ -57,7 +57,7 @@ public class TypeSafeMQLTest {
 			qb.append("{}", Restrictions.not(Restrictions.or(pexp.between(Exp_.numExp, 100L, 200L),
 					pexp.notIn(Exp_.fase, EFase.OK, EFase.FAILED))));
 			assertEquals(
-					"not(e.num_exp between ? and ? or e.fase not in (?,?)) -- [100(Long), 200(Long), OK(String), FAILED(String)]",
+					"NOT(e.num_exp BETWEEN ? AND ? OR e.fase NOT IN (?,?)) -- [100(Long), 200(Long), OK(String), FAILED(String)]",
 					qb.getQueryObject().toString());
 		}
 
@@ -66,14 +66,14 @@ public class TypeSafeMQLTest {
 			Predicates<Pizza> ppizza = qb.addAliasAndBuildPredicates("p", Pizza.class);
 
 			qb.append("{}", ppizza.ilike(Pizza_.name, ELike.CONTAINS, "man"));
-			assertEquals("upper(p.name) like upper(?) -- [%man%(String)]", qb.getQueryObject().toString());
+			assertEquals("UPPER(p.name) LIKE UPPER(?) -- [%man%(String)]", qb.getQueryObject().toString());
 		}
 		{
 			QueryBuilder qb = em.buildQuery();
 			Predicates<Pizza> ppizza = qb.addAliasAndBuildPredicates("p", Pizza.class);
 
 			qb.append("{}", ppizza.like(Pizza_.name, ELike.CONTAINS, "man"));
-			assertEquals("p.name like ? -- [%man%(String)]", qb.getQueryObject().toString());
+			assertEquals("p.name LIKE ? -- [%man%(String)]", qb.getQueryObject().toString());
 		}
 		{
 			QueryBuilder qb = em.buildQuery();
@@ -81,7 +81,7 @@ public class TypeSafeMQLTest {
 
 			qb.append("{}",
 					Restrictions.or(Restrictions.not(ppizza.isNotNull(Pizza_.name)), ppizza.isNull(Pizza_.name)));
-			assertEquals("not(p.name IS NOT NULL) or p.name IS NULL -- []", qb.getQueryObject().toString());
+			assertEquals("NOT(p.name IS NOT NULL) OR p.name IS NULL -- []", qb.getQueryObject().toString());
 		}
 	}
 

@@ -30,11 +30,11 @@ public class Restrictions {
 	// }
 
 	public static IQueryObject and(List<IQueryObject> qs) {
-		return composition(" and ", qs);
+		return composition(" AND ", qs);
 	}
 
 	public static IQueryObject or(List<IQueryObject> qs) {
-		return composition(" or ", qs);
+		return composition(" OR ", qs);
 	}
 
 	public static IQueryObject list(List<IQueryObject> qs) {
@@ -55,7 +55,7 @@ public class Restrictions {
 
 	public static IQueryObject not(IQueryObject q) {
 		QueryObject r = new QueryObject();
-		r.append("not(");
+		r.append("NOT(");
 		r.append(q);
 		r.append(")");
 		return r;
